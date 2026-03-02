@@ -105,9 +105,18 @@ jobs:
           cd web-interface
           nohup python3 app.py > ../web.log 2>&1 &
           sleep 10
-          
-          echo "Custom web interface started on port 8080"
           cd ..
+          
+          # Setup ws-scrcpy for Android screen
+          git clone --depth 1 https://github.com/NetrisTV/ws-scrcpy.git
+          cd ws-scrcpy
+          npm install
+          nohup npm start > ../scrcpy.log 2>&1 &
+          sleep 15
+          cd ..
+          
+          echo "Web interface started on port 8080"
+          echo "Scrcpy started on port 8000"
       
       - name: Setup Cloudflare Tunnel
         run: |
@@ -168,6 +177,7 @@ jobs:
           path: |
             tunnel.log
             web.log
+            scrcpy.log
       
       - name: Cleanup
         if: always()
@@ -175,3 +185,4 @@ jobs:
           docker stop redroid-arm64 || true
           pkill cloudflared || true
           pkill python3 || true
+          pkill node || true

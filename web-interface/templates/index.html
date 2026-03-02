@@ -8,157 +8,234 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #0f172a;
             min-height: 100vh;
-            padding: 20px;
+            color: #e2e8f0;
         }
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            height: 100vh;
+            gap: 0;
+        }
+        .sidebar {
+            background: #1e293b;
+            border-right: 1px solid #334155;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
             color: white;
-            padding: 30px;
+            padding: 20px;
             text-align: center;
+            border-bottom: 1px solid #334155;
         }
-        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header h1 { font-size: 1.5em; margin-bottom: 8px; }
         .status {
             display: inline-block;
-            padding: 8px 20px;
+            padding: 6px 16px;
             border-radius: 20px;
             background: rgba(255,255,255,0.2);
-            margin-top: 10px;
+            font-size: 0.85em;
+            margin-top: 8px;
         }
         .status.online { background: #10b981; }
         .status.offline { background: #ef4444; }
-        .content { padding: 30px; }
+        .sidebar-content { 
+            padding: 20px; 
+            flex: 1;
+            overflow-y: auto;
+        }
         .section {
-            background: #f9fafb;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
+            background: #334155;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid #475569;
         }
         .section h2 {
-            color: #667eea;
-            margin-bottom: 15px;
-            font-size: 1.5em;
+            color: #60a5fa;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .main-content {
+            background: #0f172a;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .screen-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            position: relative;
+            overflow: hidden;
+        }
+        #androidScreen {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #000;
+        }
+        .screen-placeholder {
+            text-align: center;
+            color: #64748b;
+        }
+        .screen-placeholder .icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        .controls-bar {
+            background: #1e293b;
+            border-top: 1px solid #334155;
+            padding: 12px 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
         }
         .upload-area {
-            border: 3px dashed #667eea;
-            border-radius: 10px;
-            padding: 40px;
+            border: 2px dashed #475569;
+            border-radius: 8px;
+            padding: 24px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
+            background: #1e293b;
         }
         .upload-area:hover {
-            background: #f3f4f6;
-            border-color: #764ba2;
+            background: #334155;
+            border-color: #60a5fa;
         }
         .upload-area.dragover {
-            background: #e0e7ff;
-            border-color: #667eea;
+            background: #1e40af;
+            border-color: #3b82f6;
         }
         input[type="file"] { display: none; }
         .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
             color: white;
             border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
+            padding: 8px 16px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 1em;
-            font-weight: 600;
-            transition: transform 0.2s;
-            margin: 5px;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
-        .btn:hover { transform: translateY(-2px); }
+        .btn:hover { 
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
         .btn:active { transform: translateY(0); }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85em;
+        }
         .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
         .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .btn-secondary { background: #475569; }
         .package-list {
-            max-height: 300px;
+            max-height: 250px;
             overflow-y: auto;
-            background: white;
-            border-radius: 8px;
-            padding: 10px;
+            background: #1e293b;
+            border-radius: 6px;
+            border: 1px solid #475569;
         }
         .package-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px;
-            border-bottom: 1px solid #e5e7eb;
+            padding: 10px 12px;
+            border-bottom: 1px solid #334155;
             transition: background 0.2s;
         }
-        .package-item:hover { background: #f9fafb; }
+        .package-item:hover { background: #334155; }
+        .package-item:last-child { border-bottom: none; }
         .package-name {
             font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            color: #374151;
+            font-size: 0.85em;
+            color: #94a3b8;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .package-actions {
+            display: flex;
+            gap: 6px;
         }
         .terminal {
-            background: #1e293b;
+            background: #0f172a;
             color: #10b981;
             font-family: 'Courier New', monospace;
-            padding: 20px;
-            border-radius: 8px;
-            max-height: 400px;
+            padding: 12px;
+            border-radius: 6px;
+            max-height: 200px;
             overflow-y: auto;
-            font-size: 0.9em;
-            line-height: 1.6;
+            font-size: 0.8em;
+            line-height: 1.5;
+            border: 1px solid #334155;
         }
         .terminal pre { margin: 0; white-space: pre-wrap; word-wrap: break-word; }
         .input-group {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin-top: 10px;
         }
         .input-group input {
             flex: 1;
-            padding: 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 1em;
+            padding: 10px;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            font-size: 0.9em;
+            background: #1e293b;
+            color: #e2e8f0;
         }
         .input-group input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #3b82f6;
+            background: #334155;
         }
         .device-info {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
         }
         .info-card {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
+            background: #1e293b;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid #3b82f6;
         }
         .info-label {
-            font-size: 0.8em;
-            color: #6b7280;
+            font-size: 0.75em;
+            color: #64748b;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         .info-value {
-            font-size: 1.2em;
+            font-size: 1em;
             font-weight: 600;
-            color: #1f2937;
-            margin-top: 5px;
+            color: #e2e8f0;
+            margin-top: 4px;
         }
         .loading {
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
             border-radius: 50%;
             border-top-color: white;
             animation: spin 1s ease-in-out infinite;
@@ -170,13 +247,14 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            padding: 15px 25px;
+            padding: 12px 20px;
             border-radius: 8px;
             color: white;
-            font-weight: 600;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            font-weight: 500;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             animation: slideIn 0.3s ease-out;
             z-index: 1000;
+            font-size: 0.9em;
         }
         .notification.success { background: #10b981; }
         .notification.error { background: #ef4444; }
@@ -184,78 +262,126 @@
             from { transform: translateX(400px); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
+        .collapse-btn {
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            padding: 4px;
+            font-size: 0.9em;
+        }
+        .collapse-btn:hover { color: #94a3b8; }
+        .collapsible-content {
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .collapsible-content.collapsed {
+            max-height: 0;
+        }
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+            .sidebar {
+                max-height: 50vh;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🤖 Android ARM64 Controller</h1>
-            <div class="status" id="status">
-                <span class="loading"></span> Checking...
-            </div>
-        </div>
-
-        <div class="content">
-            <div class="device-info" id="deviceInfo" style="display:none;">
-                <div class="info-card">
-                    <div class="info-label">Android Version</div>
-                    <div class="info-value" id="androidVersion">-</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-label">Model</div>
-                    <div class="info-value" id="model">-</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-label">CPU Architecture</div>
-                    <div class="info-value" id="cpuAbi">-</div>
+        <div class="sidebar">
+            <div class="header">
+                <h1>🤖 Android ARM64</h1>
+                <div class="status" id="status">
+                    <span class="loading"></span> Checking...
                 </div>
             </div>
 
-            <div class="section">
-                <h2>📦 Upload & Install APK</h2>
-                <div class="upload-area" id="uploadArea">
-                    <input type="file" id="fileInput" accept=".apk">
-                    <div>
-                        <p style="font-size: 3em; margin-bottom: 10px;">📱</p>
-                        <p style="font-size: 1.2em; color: #667eea; font-weight: 600;">Drop APK here or click to browse</p>
-                        <p style="color: #6b7280; margin-top: 10px;">Maximum file size: 500MB</p>
+            <div class="sidebar-content">
+                <div class="device-info" id="deviceInfo" style="display:none;">
+                    <div class="info-card">
+                        <div class="info-label">Android</div>
+                        <div class="info-value" id="androidVersion">-</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Architecture</div>
+                        <div class="info-value" id="cpuAbi">-</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>📦 Upload APK</h2>
+                    <div class="upload-area" id="uploadArea">
+                        <input type="file" id="fileInput" accept=".apk">
+                        <div>
+                            <p style="font-size: 2em; margin-bottom: 8px;">📱</p>
+                            <p style="font-size: 0.95em; color: #60a5fa; font-weight: 500;">Drop APK or click</p>
+                            <p style="color: #64748b; margin-top: 6px; font-size: 0.8em;">Max 500MB</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>
+                        📱 Apps
+                        <button class="btn btn-sm btn-secondary" onclick="refreshPackages()">🔄</button>
+                    </h2>
+                    <div class="package-list" id="packageList">
+                        <p style="text-align: center; color: #64748b; padding: 16px; font-size: 0.9em;">Loading...</p>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>🖥️ Shell</h2>
+                    <div class="input-group">
+                        <input type="text" id="shellInput" placeholder="pm list packages">
+                        <button class="btn btn-sm" onclick="executeShell()">▶️</button>
+                    </div>
+                    <div class="terminal" id="shellOutput" style="margin-top: 10px;">
+                        <pre>Ready...</pre>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>📋 Tools</h2>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn btn-sm" onclick="getLogcat()">📖 Logcat</button>
+                        <button class="btn btn-sm btn-danger" onclick="clearLogcat()">🗑️ Clear</button>
+                        <button class="btn btn-sm btn-success" onclick="takeScreenshot()">📸 Screenshot</button>
+                    </div>
+                    <div class="terminal" id="logcatOutput" style="margin-top: 10px; display: none;">
+                        <pre>Logs...</pre>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="section">
-                <h2>📱 Installed Apps</h2>
-                <button class="btn" onclick="refreshPackages()">🔄 Refresh</button>
-                <div class="package-list" id="packageList">
-                    <p style="text-align: center; color: #6b7280; padding: 20px;">Loading...</p>
+        <div class="main-content">
+            <div class="screen-container" id="screenContainer">
+                <div class="screen-placeholder">
+                    <div class="icon">📱</div>
+                    <p>Android Screen</p>
+                    <p style="font-size: 0.9em; margin-top: 8px; color: #475569;">Connecting to scrcpy...</p>
                 </div>
+                <iframe id="androidScreen" style="display: none;"></iframe>
             </div>
-
-            <div class="section">
-                <h2>🖥️ Shell Command</h2>
-                <div class="input-group">
-                    <input type="text" id="shellInput" placeholder="Enter shell command (e.g., pm list packages)">
-                    <button class="btn" onclick="executeShell()">▶️ Execute</button>
-                </div>
-                <div class="terminal" id="shellOutput" style="margin-top: 15px;">
-                    <pre>Ready to execute commands...</pre>
-                </div>
-            </div>
-
-            <div class="section">
-                <h2>📋 Logcat</h2>
-                <button class="btn" onclick="getLogcat()">📖 View Logcat</button>
-                <button class="btn btn-danger" onclick="clearLogcat()">🗑️ Clear Logcat</button>
-                <button class="btn btn-success" onclick="takeScreenshot()">📸 Screenshot</button>
-                <div class="terminal" id="logcatOutput" style="margin-top: 15px;">
-                    <pre>Click "View Logcat" to see logs...</pre>
-                </div>
+            
+            <div class="controls-bar">
+                <button class="btn btn-sm" onclick="sendKey('HOME')">🏠 Home</button>
+                <button class="btn btn-sm" onclick="sendKey('BACK')">◀️ Back</button>
+                <button class="btn btn-sm" onclick="sendKey('APP_SWITCH')">📱 Recent</button>
+                <button class="btn btn-sm" onclick="sendKey('POWER')">⚡ Power</button>
+                <button class="btn btn-sm btn-secondary" onclick="rotateScreen()">🔄 Rotate</button>
             </div>
         </div>
     </div>
 
     <script>
         let deviceOnline = false;
+        let scrcpyPort = 8000;
 
         // Check device status
         async function checkStatus() {
@@ -269,22 +395,75 @@
                 if (data.online) {
                     deviceOnline = true;
                     statusEl.className = 'status online';
-                    statusEl.textContent = '✅ Device Online';
+                    statusEl.textContent = '✅ Online';
                     deviceInfo.style.display = 'grid';
                     
                     document.getElementById('androidVersion').textContent = data.android_version || '-';
-                    document.getElementById('model').textContent = data.model || '-';
                     document.getElementById('cpuAbi').textContent = data.cpu_abi || '-';
                     
                     refreshPackages();
+                    loadScrcpy();
                 } else {
                     deviceOnline = false;
                     statusEl.className = 'status offline';
-                    statusEl.textContent = '❌ Device Offline';
+                    statusEl.textContent = '❌ Offline';
                     deviceInfo.style.display = 'none';
                 }
             } catch (e) {
                 console.error('Status check failed:', e);
+            }
+        }
+
+        // Load scrcpy screen
+        function loadScrcpy() {
+            const iframe = document.getElementById('androidScreen');
+            const placeholder = document.querySelector('.screen-placeholder');
+            
+            // Try to load ws-scrcpy
+            iframe.src = `http://localhost:${scrcpyPort}`;
+            iframe.style.display = 'block';
+            
+            iframe.onload = () => {
+                placeholder.style.display = 'none';
+            };
+            
+            iframe.onerror = () => {
+                placeholder.innerHTML = `
+                    <div class="icon">⚠️</div>
+                    <p>Scrcpy not available</p>
+                    <p style="font-size: 0.85em; margin-top: 8px; color: #64748b;">Use controls below to interact</p>
+                `;
+            };
+        }
+
+        // Send key event
+        async function sendKey(keycode) {
+            try {
+                const res = await fetch('/api/shell', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: `input keyevent KEYCODE_${keycode}` })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showNotification(`✅ ${keycode} pressed`, 'success');
+                }
+            } catch (e) {
+                showNotification('❌ Failed to send key', 'error');
+            }
+        }
+
+        // Rotate screen
+        async function rotateScreen() {
+            try {
+                await fetch('/api/shell', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: 'settings put system user_rotation 1' })
+                });
+                showNotification('🔄 Screen rotated', 'success');
+            } catch (e) {
+                showNotification('❌ Rotation failed', 'error');
             }
         }
 
@@ -356,7 +535,7 @@
 
         async function refreshPackages() {
             const listEl = document.getElementById('packageList');
-            listEl.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 20px;">Loading...</p>';
+            listEl.innerHTML = '<p style="text-align: center; color: #64748b; padding: 16px; font-size: 0.9em;">Loading...</p>';
 
             try {
                 const res = await fetch('/api/packages');
@@ -365,18 +544,18 @@
                 if (data.success && data.packages.length > 0) {
                     listEl.innerHTML = data.packages.map(pkg => `
                         <div class="package-item">
-                            <span class="package-name">${pkg}</span>
-                            <div>
-                                <button class="btn btn-success" onclick="launchApp('${pkg}')">▶️ Launch</button>
-                                <button class="btn btn-danger" onclick="uninstallApp('${pkg}')">🗑️ Uninstall</button>
+                            <span class="package-name" title="${pkg}">${pkg}</span>
+                            <div class="package-actions">
+                                <button class="btn btn-sm btn-success" onclick="launchApp('${pkg}')">▶️</button>
+                                <button class="btn btn-sm btn-danger" onclick="uninstallApp('${pkg}')">🗑️</button>
                             </div>
                         </div>
                     `).join('');
                 } else {
-                    listEl.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 20px;">No apps installed</p>';
+                    listEl.innerHTML = '<p style="text-align: center; color: #64748b; padding: 16px; font-size: 0.9em;">No apps</p>';
                 }
             } catch (e) {
-                listEl.innerHTML = '<p style="text-align: center; color: #ef4444; padding: 20px;">Failed to load packages</p>';
+                listEl.innerHTML = '<p style="text-align: center; color: #ef4444; padding: 16px; font-size: 0.9em;">Failed to load</p>';
             }
         }
 
@@ -447,7 +626,8 @@
 
         async function getLogcat() {
             const output = document.getElementById('logcatOutput');
-            output.innerHTML = '<pre><span class="loading"></span> Loading logcat...</pre>';
+            output.style.display = 'block';
+            output.innerHTML = '<pre><span class="loading"></span> Loading...</pre>';
 
             try {
                 const res = await fetch('/api/logcat');
@@ -463,9 +643,10 @@
             try {
                 await fetch('/api/clear-logcat', { method: 'POST' });
                 showNotification('✅ Logcat cleared', 'success');
-                document.getElementById('logcatOutput').innerHTML = '<pre>Logcat cleared</pre>';
+                const output = document.getElementById('logcatOutput');
+                output.style.display = 'none';
             } catch (e) {
-                showNotification('❌ Failed to clear logcat', 'error');
+                showNotification('❌ Failed', 'error');
             }
         }
 
