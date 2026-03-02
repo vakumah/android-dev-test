@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 import os
 import subprocess
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify, send_from_directory, Response
 from werkzeug.utils import secure_filename
 import threading
 import time
+import requests
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = '/tmp/apks'
@@ -14,6 +15,7 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # ADB device
 ADB_DEVICE = "localhost:5555"
+SCRCPY_URL = "http://localhost:8000"
 
 def run_command(cmd):
     """Run shell command and return output"""
@@ -26,6 +28,37 @@ def run_command(cmd):
         }
     except Exception as e:
         return {'success': False, 'error': str(e)}
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/scrcpy/')
+@app.route('/scrcpy/<path:path>')
+def proxy_scrcpy(path=''):
+    """Proxy scrcpy web interface"""
+    try:
+        url = f"{SCRCPY_URL}/{path}"
+        
+        # Forward request
+        resp = requests.request(
+            method=request.method,
+            url=url,
+            headers={key: value for (key, value) in request.headers if key != 'Host'},
+            data=request.get_data(),
+            cookies=request.cookies,
+            allow_redirects=False,
+            stream=True
+        )
+        
+        # Forward response
+        excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
+        headers = [(name, value) for (name, value) in resp.raw.headers.items()
+                   if name.lower() not in excluded_headers]
+        
+        return Response(resp.content, resp.status_code, headers)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/')
 def index():

@@ -98,8 +98,8 @@ jobs:
       
       - name: Setup custom web interface
         run: |
-          # Install Flask
-          pip3 install flask
+          # Install Flask and dependencies
+          pip3 install flask requests
           
           # Start custom web interface
           cd web-interface

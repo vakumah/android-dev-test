@@ -419,21 +419,21 @@
             const iframe = document.getElementById('androidScreen');
             const placeholder = document.querySelector('.screen-placeholder');
             
-            // Try to load ws-scrcpy
-            iframe.src = `http://localhost:${scrcpyPort}`;
+            // Use proxy to load scrcpy
+            iframe.src = '/scrcpy/';
             iframe.style.display = 'block';
             
-            iframe.onload = () => {
-                placeholder.style.display = 'none';
-            };
-            
-            iframe.onerror = () => {
-                placeholder.innerHTML = `
-                    <div class="icon">⚠️</div>
-                    <p>Scrcpy not available</p>
-                    <p style="font-size: 0.85em; margin-top: 8px; color: #64748b;">Use controls below to interact</p>
-                `;
-            };
+            // Check if loaded after 5 seconds
+            setTimeout(() => {
+                try {
+                    if (iframe.contentWindow.location.href) {
+                        placeholder.style.display = 'none';
+                    }
+                } catch (e) {
+                    // Cross-origin, assume loaded
+                    placeholder.style.display = 'none';
+                }
+            }, 5000);
         }
 
         // Send key event
