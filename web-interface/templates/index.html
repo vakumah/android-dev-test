@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Android ARM64 Controller</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .status {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.2);
+            margin-top: 10px;
+        }
+        .status.online { background: #10b981; }
+        .status.offline { background: #ef4444; }
+        .content { padding: 30px; }
+        .section {
+            background: #f9fafb;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .upload-area:hover {
+            background: #f3f4f6;
+            border-color: #764ba2;
+        }
+        .upload-area.dragover {
+            background: #e0e7ff;
+            border-color: #667eea;
+        }
+        input[type="file"] { display: none; }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: transform 0.2s;
+            margin: 5px;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); }
+        .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .package-list {
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .package-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            transition: background 0.2s;
+        }
+        .package-item:hover { background: #f9fafb; }
+        .package-name {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #374151;
+        }
+        .terminal {
+            background: #1e293b;
+            color: #10b981;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            border-radius: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        .terminal pre { margin: 0; white-space: pre-wrap; word-wrap: break-word; }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .input-group input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .device-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .info-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .info-label {
+            font-size: 0.8em;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .info-value {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #1f2937;
+            margin-top: 5px;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease-out;
+            z-index: 1000;
+        }
+        .notification.success { background: #10b981; }
+        .notification.error { background: #ef4444; }
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Android ARM64 Controller</h1>
+            <div class="status" id="status">
+                <span class="loading"></span> Checking...
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="device-info" id="deviceInfo" style="display:none;">
+                <div class="info-card">
+                    <div class="info-label">Android Version</div>
+                    <div class="info-value" id="androidVersion">-</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Model</div>
+                    <div class="info-value" id="model">-</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">CPU Architecture</div>
+                    <div class="info-value" id="cpuAbi">-</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>📦 Upload & Install APK</h2>
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" id="fileInput" accept=".apk">
+                    <div>
+                        <p style="font-size: 3em; margin-bottom: 10px;">📱</p>
+                        <p style="font-size: 1.2em; color: #667eea; font-weight: 600;">Drop APK here or click to browse</p>
+                        <p style="color: #6b7280; margin-top: 10px;">Maximum file size: 500MB</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>📱 Installed Apps</h2>
+                <button class="btn" onclick="refreshPackages()">🔄 Refresh</button>
+                <div class="package-list" id="packageList">
+                    <p style="text-align: center; color: #6b7280; padding: 20px;">Loading...</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🖥️ Shell Command</h2>
+                <div class="input-group">
+                    <input type="text" id="shellInput" placeholder="Enter shell command (e.g., pm list packages)">
+                    <button class="btn" onclick="executeShell()">▶️ Execute</button>
+                </div>
+                <div class="terminal" id="shellOutput" style="margin-top: 15px;">
+                    <pre>Ready to execute commands...</pre>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>📋 Logcat</h2>
+                <button class="btn" onclick="getLogcat()">📖 View Logcat</button>
+                <button class="btn btn-danger" onclick="clearLogcat()">🗑️ Clear Logcat</button>
+                <button class="btn btn-success" onclick="takeScreenshot()">📸 Screenshot</button>
+                <div class="terminal" id="logcatOutput" style="margin-top: 15px;">
+                    <pre>Click "View Logcat" to see logs...</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let deviceOnline = false;
+
+        // Check device status
+        async function checkStatus() {
+            try {
+                const res = await fetch('/api/device/status');
+                const data = await res.json();
+                
+                const statusEl = document.getElementById('status');
+                const deviceInfo = document.getElementById('deviceInfo');
+                
+                if (data.online) {
+                    deviceOnline = true;
+                    statusEl.className = 'status online';
+                    statusEl.textContent = '✅ Device Online';
+                    deviceInfo.style.display = 'grid';
+                    
+                    document.getElementById('androidVersion').textContent = data.android_version || '-';
+                    document.getElementById('model').textContent = data.model || '-';
+                    document.getElementById('cpuAbi').textContent = data.cpu_abi || '-';
+                    
+                    refreshPackages();
+                } else {
+                    deviceOnline = false;
+                    statusEl.className = 'status offline';
+                    statusEl.textContent = '❌ Device Offline';
+                    deviceInfo.style.display = 'none';
+                }
+            } catch (e) {
+                console.error('Status check failed:', e);
+            }
+        }
+
+        // Upload area
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        async function handleFile(file) {
+            if (!file.name.endsWith('.apk')) {
+                showNotification('Please select an APK file', 'error');
+                return;
+            }
+
+            if (!deviceOnline) {
+                showNotification('Device is offline', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('apk', file);
+
+            showNotification('Installing ' + file.name + '...', 'success');
+
+            try {
+                const res = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    showNotification('✅ APK installed successfully!', 'success');
+                    refreshPackages();
+                } else {
+                    showNotification('❌ ' + (data.error || 'Installation failed'), 'error');
+                }
+            } catch (e) {
+                showNotification('❌ Upload failed: ' + e.message, 'error');
+            }
+
+            fileInput.value = '';
+        }
+
+        async function refreshPackages() {
+            const listEl = document.getElementById('packageList');
+            listEl.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 20px;">Loading...</p>';
+
+            try {
+                const res = await fetch('/api/packages');
+                const data = await res.json();
+
+                if (data.success && data.packages.length > 0) {
+                    listEl.innerHTML = data.packages.map(pkg => `
+                        <div class="package-item">
+                            <span class="package-name">${pkg}</span>
+                            <div>
+                                <button class="btn btn-success" onclick="launchApp('${pkg}')">▶️ Launch</button>
+                                <button class="btn btn-danger" onclick="uninstallApp('${pkg}')">🗑️ Uninstall</button>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    listEl.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 20px;">No apps installed</p>';
+                }
+            } catch (e) {
+                listEl.innerHTML = '<p style="text-align: center; color: #ef4444; padding: 20px;">Failed to load packages</p>';
+            }
+        }
+
+        async function launchApp(pkg) {
+            try {
+                const res = await fetch('/api/launch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ package: pkg })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    showNotification('✅ Launched ' + pkg, 'success');
+                } else {
+                    showNotification('❌ ' + (data.error || 'Launch failed'), 'error');
+                }
+            } catch (e) {
+                showNotification('❌ Launch failed', 'error');
+            }
+        }
+
+        async function uninstallApp(pkg) {
+            if (!confirm('Uninstall ' + pkg + '?')) return;
+
+            try {
+                const res = await fetch('/api/uninstall', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ package: pkg })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    showNotification('✅ Uninstalled ' + pkg, 'success');
+                    refreshPackages();
+                } else {
+                    showNotification('❌ ' + (data.error || 'Uninstall failed'), 'error');
+                }
+            } catch (e) {
+                showNotification('❌ Uninstall failed', 'error');
+            }
+        }
+
+        async function executeShell() {
+            const input = document.getElementById('shellInput');
+            const output = document.getElementById('shellOutput');
+            const command = input.value.trim();
+
+            if (!command) return;
+
+            output.innerHTML = '<pre>Executing: ' + command + '\n\n<span class="loading"></span></pre>';
+
+            try {
+                const res = await fetch('/api/shell', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command })
+                });
+                const data = await res.json();
+
+                output.innerHTML = '<pre>$ ' + command + '\n\n' + 
+                    (data.output || data.error || 'No output') + '</pre>';
+            } catch (e) {
+                output.innerHTML = '<pre>Error: ' + e.message + '</pre>';
+            }
+        }
+
+        async function getLogcat() {
+            const output = document.getElementById('logcatOutput');
+            output.innerHTML = '<pre><span class="loading"></span> Loading logcat...</pre>';
+
+            try {
+                const res = await fetch('/api/logcat');
+                const data = await res.json();
+
+                output.innerHTML = '<pre>' + (data.output || 'No logs') + '</pre>';
+            } catch (e) {
+                output.innerHTML = '<pre>Error: ' + e.message + '</pre>';
+            }
+        }
+
+        async function clearLogcat() {
+            try {
+                await fetch('/api/clear-logcat', { method: 'POST' });
+                showNotification('✅ Logcat cleared', 'success');
+                document.getElementById('logcatOutput').innerHTML = '<pre>Logcat cleared</pre>';
+            } catch (e) {
+                showNotification('❌ Failed to clear logcat', 'error');
+            }
+        }
+
+        async function takeScreenshot() {
+            showNotification('📸 Taking screenshot...', 'success');
+            try {
+                const res = await fetch('/api/screenshot');
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'screenshot.png';
+                a.click();
+                showNotification('✅ Screenshot saved!', 'success');
+            } catch (e) {
+                showNotification('❌ Screenshot failed', 'error');
+            }
+        }
+
+        function showNotification(message, type) {
+            const notif = document.createElement('div');
+            notif.className = 'notification ' + type;
+            notif.textContent = message;
+            document.body.appendChild(notif);
+
+            setTimeout(() => {
+                notif.style.animation = 'slideIn 0.3s ease-out reverse';
+                setTimeout(() => notif.remove(), 300);
+            }, 3000);
+        }
+
+        // Enter key for shell
+        document.getElementById('shellInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') executeShell();
+        });
+
+        // Initial check and periodic refresh
+        checkStatus();
+        setInterval(checkStatus, 10000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+name: Android ARM64 Testing
+
+on:
+  workflow_dispatch:
+    inputs:
+      duration:
+        description: 'Duration in minutes (max 360)'
+        required: false
+        default: '60'
+
+jobs:
+  android-arm64:
+    runs-on: ubuntu-24.04-arm64
+    timeout-minutes: 360
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          df -h
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y adb scrcpy
+      
+      - name: Install linux-modules-extra for binder
+        run: |
+          sudo apt-get install -y linux-modules-extra-$(uname -r)
+      
+      - name: Load binder module
+        run: |
+          sudo modprobe binder_linux devices="binder,hwbinder,vndbinder"
+          lsmod | grep binder
+      
+      - name: Mount binderfs
+        run: |
+          sudo mkdir -p /dev/binderfs
+          sudo mount -t binder binder /dev/binderfs
+          ls -la /dev/binderfs/
+      
+      - name: Pull Redroid ARM64 image
+        run: |
+          docker pull redroid/redroid:12.0.0-latest
+      
+      - name: Start Redroid ARM64 container
+        run: |
+          docker run -itd \
+            --rm \
+            --privileged \
+            --name redroid-arm64 \
+            -v ~/redroid-data:/data \
+            -v /dev/binderfs:/dev/binderfs \
+            -p 5555:5555 \
+            redroid/redroid:12.0.0-latest
+      
+      - name: Wait for Android boot
+        run: |
+          echo "Waiting for Android to boot..."
+          sleep 40
+      
+      - name: Connect ADB
+        run: |
+          adb kill-server || true
+          adb start-server
+          sleep 2
+          adb connect localhost:5555
+          
+          # Wait for device online
+          for i in {1..30}; do
+            STATUS=$(adb devices | grep "localhost:5555" | awk '{print $2}')
+            if [ "$STATUS" = "device" ]; then
+              echo "✅ Device online!"
+              break
+            fi
+            echo "Waiting for device... ($i/30)"
+            sleep 3
+          done
+      
+      - name: Verify Android ARM64
+        run: |
+          adb devices
+          echo "Android Version:"
+          adb -s localhost:5555 shell getprop ro.build.version.release
+          echo "Model:"
+          adb -s localhost:5555 shell getprop ro.product.model
+          echo "CPU ABI:"
+          adb -s localhost:5555 shell getprop ro.product.cpu.abi
+          echo "CPU ABI List:"
+          adb -s localhost:5555 shell getprop ro.product.cpu.abilist
+          echo "Architecture:"
+          adb -s localhost:5555 shell uname -m
+      
+      - name: Setup custom web interface
+        run: |
+          # Install Flask
+          pip3 install flask
+          
+          # Start custom web interface
+          cd web-interface
+          nohup python3 app.py > ../web.log 2>&1 &
+          sleep 10
+          
+          echo "Custom web interface started on port 8080"
+          cd ..
+      
+      - name: Setup Cloudflare Tunnel
+        run: |
+          # Download cloudflared ARM64
+          wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64.deb
+          sudo dpkg -i cloudflared-linux-arm64.deb
+          
+          # Start tunnel untuk custom web interface
+          nohup cloudflared tunnel --url http://localhost:8080 > tunnel.log 2>&1 &
+          sleep 15
+          
+          # Ambil URL dari log
+          echo "=== Cloudflare Tunnel URL ==="
+          grep -o 'https://[a-z0-9-]*\.trycloudflare\.com' tunnel.log | head -1 | tee tunnel-url.txt
+          echo "============================"
+      
+      - name: Display access info
+        run: |
+          echo ""
+          echo "🎮 ===== ANDROID ARM64 READY ====="
+          echo ""
+          echo "📱 Android Version: $(adb -s localhost:5555 shell getprop ro.build.version.release)"
+          echo "🏗️  Architecture: $(adb -s localhost:5555 shell getprop ro.product.cpu.abi)"
+          echo "🔗 Web Access URL:"
+          cat tunnel-url.txt || echo "Check tunnel.log for URL"
+          echo ""
+          echo "⏱️  Session will run for ${{ github.event.inputs.duration }} minutes"
+          echo ""
+          echo "📋 ADB Commands you can use:"
+          echo "   adb -s localhost:5555 shell"
+          echo "   adb -s localhost:5555 install app.apk"
+          echo ""
+      
+      - name: Keep session alive
+        run: |
+          DURATION=${{ github.event.inputs.duration }}
+          echo "Keeping session alive for ${DURATION} minutes..."
+          
+          # Show tunnel URL every 5 minutes
+          for i in $(seq 1 $((DURATION / 5))); do
+            echo ""
+            echo "=== Session active - Minute $((i * 5))/${DURATION} ==="
+            echo "Tunnel URL:"
+            cat tunnel-url.txt 2>/dev/null || grep -o 'https://[a-z0-9-]*\.trycloudflare\.com' tunnel.log | head -1
+            echo ""
+            
+            # Show device status
+            adb devices | grep localhost:5555 || echo "Device offline, reconnecting..."
+            
+            sleep 300
+          done
+      
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: redroid-arm64-logs
+          path: |
+            tunnel.log
+            web.log
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop redroid-arm64 || true
+          pkill cloudflared || true
+          pkill python3 || true
