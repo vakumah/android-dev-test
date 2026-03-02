@@ -99,13 +99,26 @@ jobs:
       - name: Setup custom web interface
         run: |
           # Install Flask and dependencies
-          pip3 install flask requests
+          pip3 install flask requests werkzeug
           
           # Start custom web interface
           cd web-interface
           nohup python3 app.py > ../web.log 2>&1 &
-          sleep 10
+          WEB_PID=$!
           cd ..
+          
+          # Wait and check if Flask started
+          echo "Waiting for Flask to start..."
+          sleep 15
+          
+          # Check if Flask is running
+          if curl -s http://localhost:8080 > /dev/null; then
+            echo "✅ Flask is running on port 8080"
+          else
+            echo "❌ Flask failed to start, checking logs:"
+            cat web.log
+            exit 1
+          fi
           
           # Setup ws-scrcpy for Android screen
           git clone --depth 1 https://github.com/NetrisTV/ws-scrcpy.git
@@ -114,6 +127,13 @@ jobs:
           nohup npm start > ../scrcpy.log 2>&1 &
           sleep 15
           cd ..
+          
+          # Check if scrcpy started
+          if curl -s http://localhost:8000 > /dev/null; then
+            echo "✅ Scrcpy is running on port 8000"
+          else
+            echo "⚠️ Scrcpy may not be ready yet"
+          fi
           
           echo "Web interface started on port 8080"
           echo "Scrcpy started on port 8000"
@@ -145,9 +165,16 @@ jobs:
           echo ""
           echo "⏱️  Session will run for ${{ github.event.inputs.duration }} minutes"
           echo ""
-          echo "📋 ADB Commands you can use:"
-          echo "   adb -s localhost:5555 shell"
-          echo "   adb -s localhost:5555 install app.apk"
+          echo "� Service Status:"
+          echo "   Flask (8080): $(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080 || echo 'DOWN')"
+          echo "   Scrcpy (8000): $(curl -s -o /dev/null -w '%{http_code}' http://localhost:8000 || echo 'DOWN')"
+          echo ""
+          echo "📋 Recent logs:"
+          echo "=== Flask logs (last 10 lines) ==="
+          tail -10 web.log || echo "No logs"
+          echo ""
+          echo "=== Scrcpy logs (last 10 lines) ==="
+          tail -10 scrcpy.log || echo "No logs"
           echo ""
       
       - name: Keep session alive

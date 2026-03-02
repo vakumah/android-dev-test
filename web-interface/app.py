@@ -33,6 +33,15 @@ def run_command(cmd):
 def index():
     return render_template('index.html')
 
+@app.route('/health')
+def health():
+    """Health check endpoint"""
+    return jsonify({
+        'status': 'ok',
+        'flask': 'running',
+        'port': 8080
+    })
+
 @app.route('/scrcpy/')
 @app.route('/scrcpy/<path:path>')
 def proxy_scrcpy(path=''):
@@ -48,7 +57,8 @@ def proxy_scrcpy(path=''):
             data=request.get_data(),
             cookies=request.cookies,
             allow_redirects=False,
-            stream=True
+            stream=True,
+            timeout=10
         )
         
         # Forward response
@@ -57,6 +67,8 @@ def proxy_scrcpy(path=''):
                    if name.lower() not in excluded_headers]
         
         return Response(resp.content, resp.status_code, headers)
+    except requests.exceptions.ConnectionError:
+        return jsonify({'error': 'Scrcpy not available yet, please wait...'}), 503
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -205,4 +217,13 @@ def clear_logcat():
     return jsonify({'success': result['success']})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=False)
+    print("=" * 50)
+    print("Starting Flask Web Interface")
+    print("Port: 8080")
+    print("=" * 50)
+    try:
+        app.run(host='0.0.0.0', port=8080, debug=False, threaded=True)
+    except Exception as e:
+        print(f"ERROR: Failed to start Flask: {e}")
+        import traceback
+        traceback.print_exc()
